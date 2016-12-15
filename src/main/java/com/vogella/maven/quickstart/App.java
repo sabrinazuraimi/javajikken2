@@ -34,10 +34,10 @@ class User{
 
 public class App 
 {
-	public void configFirebase() throws FileNotFoundException {
+	public static void configFirebase() throws FileNotFoundException {
 	       /*Firebase SDKをinitializeするために*/
 	      FirebaseOptions options = new FirebaseOptions.Builder()
-	    		  .setServiceAccount(new FileInputStream("path/to/serviceAccountKey.json"))
+	    		  .setServiceAccount(new FileInputStream("serviceAccounKey.json"))
 	    		  .setDatabaseUrl("https://javajikken.firebaseio.com/")
 	    		  .build();
 	      
@@ -58,7 +58,7 @@ public class App
 	      });
 	      
 	      final FirebaseDatabase database = FirebaseDatabase.getInstance();
-	      DatabaseReference ref1 = database.getReference("server/saving-data/fireblog");
+	      DatabaseReference ref1 = database.getReference("https://javajikken.firebaseio.com/");
 	      DatabaseReference usersRef = ref1.child("users");
 	      
 	      Map<String,User> users = new HashMap<String, User>();
@@ -70,9 +70,8 @@ public class App
 	      }
 	
 	
-    public static void main( String[] args ) 
+    public static void main( String[] args ) throws FileNotFoundException 
     {
-         
-      
+        configFirebase();
     }
 }
