@@ -129,9 +129,8 @@ class frame extends JFrame implements ActionListener{
 	        			        Map.Entry pair = (Map.Entry)it.next();
 	        			        System.out.println(pair.getKey() + " = " + pair.getValue());
 	        			        String key = (String) pair.getKey();
-	        			        String value = (String) pair.getValue();
+	        			        
 	        			        System.out.println("Key is"+key);
-	        			        System.out.println("Value is"+value);
 	        			        
 	        			        if (key.equals(usertext)){
 	        			        	System.out.println("Username exists");
@@ -139,6 +138,8 @@ class frame extends JFrame implements ActionListener{
 	        			        it.remove(); // avoids a ConcurrentModificationException
 	        			    }
 	        			}
+	        			
+	        			
 	        			
 	        			
 
