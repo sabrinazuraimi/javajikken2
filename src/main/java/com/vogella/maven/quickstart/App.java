@@ -1,6 +1,7 @@
 package com.vogella.maven.quickstart;
 
 import java.io.FileInputStream;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,9 +24,15 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.tasks.OnSuccessListener;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 class User{
 	
@@ -51,8 +58,23 @@ class User{
 	}
 }
 
+class message {
+	public String sender;
+	public String recipient;
+	public String title;
+	public String message;
+	
+	public message(String sender,String recipient, String title, String message){
+		this.sender = sender;
+		this.recipient = recipient;
+		this.title = title;
+		this.message = message;
+	}
+}
 
-class frame extends JFrame implements ActionListener{
+
+class frame extends JFrame implements ActionListener,MouseListener{
+
 
 	String usertext = new String("");
 	
@@ -75,9 +97,20 @@ class frame extends JFrame implements ActionListener{
 	JButton login = new JButton("Log In");
     JButton signup = new JButton("Sign Up");
 	JButton register = new JButton("Register");
+    JButton chat = new JButton("Chat");
 
+   //連絡ページ用//
+	JLabel name = new JLabel("To:");
+	JLabel title = new JLabel("Title:");
+	JLabel message = new JLabel("Message:");
+	
+	JTextField namefield = new JTextField(20);
+	JTextField titlefield = new JTextField(20);
+	
+	JTextArea textArea = new JTextArea(10, 50);
+	JButton send = new JButton("Send");
 
-
+    JFrame frame = new JFrame("Chat Window" );
 
 	frame(){
 		setTitle("Log In Page");
@@ -100,21 +133,24 @@ class frame extends JFrame implements ActionListener{
 	}
 	
 	//Tableの関数//
-	void newframe(Object[][] Object){
-		
-	 String[] columns = new String[]{"Name"};
-		
-	 JTable table = new JTable(Object,columns);
-		
+	void newframe(Map map){
+     
+	 JTable table = new JTable(toTableModel((Map)map)){
+		 public TableCellRenderer getCellRenderer(int row,int column){
+			 return new ButtonRenderer();
+		 }
+	 };
+	 table.setRowHeight(32);
+     table.addMouseListener((MouseListener) this);
+	 
 	 setTitle("User List");
-		
+	 
      this.add(new JScrollPane(table));
      this.pack();
      this.setVisible(true);
 		
 	}
     
-	
 	void signuppage(){
 		
 		setTitle("Sign Up Page");
@@ -142,6 +178,31 @@ class frame extends JFrame implements ActionListener{
 
 	}
 	
+	private void chatwindow() {
+        
+	    frame.setSize(600,400);
+	    frame.setLocationRelativeTo( null );
+	    frame.setVisible( true );   
+	   
+	    JPanel panel2 = new JPanel();
+	    
+		panel2.setLayout(new FlowLayout());
+		panel2.add(name);
+		panel2.add(namefield);
+		panel2.add(title);
+		panel2.add(titlefield);
+		panel2.add(message);
+		panel2.add(textArea);
+		panel2.add(send);
+		
+	
+		send.addActionListener(this);
+		frame.getContentPane().add(panel2);
+		
+	}
+
+
+	//このクラスのaction listener//
 	public void actionPerformed(ActionEvent e) {
 		//Getting a reference//
 		final FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -176,12 +237,21 @@ class frame extends JFrame implements ActionListener{
 		   
 		}
 		
+		if(e.getSource() == send){
+			System.out.println("Message sent");
+			String name = namefield.getText();
+			String title = titlefield.getText();
+			String messagesend = textArea.getText();
+			
+			registerMessage(usertext,name,title,messagesend);
+			JOptionPane.showMessageDialog(frame, "Message sent to database. We will soon forward it to the recipient","Sent",JOptionPane.PLAIN_MESSAGE);
+		}
 		else {
 		}
 		}
 
-    //Stringを比較するための関数//
-   public boolean containsIgnoreCase(String haystack,String needle) {
+//Stringを比較するための関数//
+ public boolean containsIgnoreCase(String haystack,String needle) {
      if(needle.equals(""))
 	 return true;
      if(haystack == null|| needle == null || haystack.equals("") )
@@ -192,9 +262,10 @@ class frame extends JFrame implements ActionListener{
    return m.find();
   }
 
-  //データベースからデーターを取る関数//
+ //データベースからデーターを取る関数//
   public void getData(DatabaseReference ref){
 	  
+	
 	usertext = username.getText();
 	char[] passwordtext = password.getPassword();
 		
@@ -217,20 +288,22 @@ class frame extends JFrame implements ActionListener{
      				System.out.println("The user class is"+user.getClass());
      			    
      				Iterator it = ((Map) user).entrySet().iterator();
-     			   
+     				
+     			    int i = 0;
+     			    
      			    while (it.hasNext()) {
      			        Map.Entry pair = (Map.Entry)it.next();
      			        System.out.println(pair.getKey() + " = " + pair.getValue());
      			        String key = (String) pair.getKey();
      			        
-
      			        System.out.println("Key is"+key);
      			        
      			        Object value = user.toString();
      			        System.out.println(value);
      			        
-
-     			        if (containsIgnoreCase((String) value,stringpass)){
+                        //security度が低いパスワードがデータベースにあるかどうかのチェック方法//
+     			        //時間あれば、もっといい方法見つけます//
+     			        if (containsIgnoreCase((String) value,stringpass) && i==0){
      			        	System.out.println("Login Success");
      			            panel.removeAll();
      			        	panel.setVisible(false);
@@ -238,7 +311,10 @@ class frame extends JFrame implements ActionListener{
      			        	
      			        	Object[][] display = new Object[][] {{key},{key},{key}};
      			        	
-     			        	newframe(display);
+     			        	newframe((Map)user);
+     			        	
+     			        	//if I do not do this, the table would keep on changing//
+     			        	i=1;
      			        	
      			        }
      			        else {
@@ -270,6 +346,57 @@ class frame extends JFrame implements ActionListener{
      System.out.println("New data saved");
 
      }
+ 
+//メッセージをデータベースに登録する//
+public void registerMessage(String sender,String recipient, String title, String message){
+    DatabaseReference ref = FirebaseDatabase.getInstance().getReference("message");
+    //試しでユーザーのデータ作った
+    Map<String, Object> messages = new HashMap<String, Object>();
+    messages.put(recipient,new message(sender,recipient,title,message));
+
+    ref.updateChildren(messages);
+
+    System.out.println("New message saved");
+
+}
+ 
+ public static TableModel toTableModel(Map map) {
+     DefaultTableModel model = new DefaultTableModel (
+   new Object[] { "User" }, 0
+  );
+  for (Iterator it = map.entrySet().iterator(); it.hasNext();) {
+   Map.Entry entry = (Map.Entry)it.next();
+   System.out.println("Entry is"+entry);
+   model.addRow(new Object[] { entry.getKey()});
+  }
+  return model;
+ }
+
+public void mouseClicked(MouseEvent e) {
+  System.out.println("Table Clicked");	
+  chatwindow();
+}
+
+public void mousePressed(MouseEvent e) {
+	// TODO 自動生成されたメソッド・スタブ
+	
+}
+
+public void mouseReleased(MouseEvent e) {
+	// TODO 自動生成されたメソッド・スタブ
+	
+}
+
+public void mouseEntered(MouseEvent e) {
+	// TODO 自動生成されたメソッド・スタブ
+	
+}
+
+public void mouseExited(MouseEvent e) {
+	// TODO 自動生成されたメソッド・スタブ
+	
+}
+
 
  }
   
@@ -296,3 +423,29 @@ public class App
         new frame();
     }
 }
+
+class ButtonRenderer extends JPanel implements TableCellRenderer,ActionListener {
+	
+	JButton chat = new JButton("Available(Click To Contact)");
+	
+    public Component getTableCellRendererComponent(
+                        final JTable table, Object value,
+                        boolean isSelected, boolean hasFocus,
+                        int row, int column) {
+    	JLabel label = new JLabel(value.toString());
+        this.add(label);
+        this.add(chat);
+        chat.addActionListener(this);
+        table.setEnabled(false);
+        return this;
+    }
+
+	public void actionPerformed(ActionEvent e) {
+		
+		if(e.getSource() == chat){
+			System.out.println("Chat Button Clicked!");
+		}
+		
+	}
+}
+	
