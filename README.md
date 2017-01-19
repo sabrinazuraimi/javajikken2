@@ -1,3 +1,2 @@
-# javajikken2
-# javajikken2
-# javajikken2
+A program for Java Jikken at school.
+
