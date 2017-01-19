@@ -58,6 +58,7 @@ class User{
 	}
 }
 
+//ユーザーに送るメッセージのclass宣言//
 class message {
 	public String sender;
 	public String recipient;
@@ -75,7 +76,6 @@ class message {
 
 class frame extends JFrame implements ActionListener,MouseListener{
 
-
 	String usertext = new String("");
 	
 	JPanel panel = new JPanel();
@@ -91,8 +91,6 @@ class frame extends JFrame implements ActionListener,MouseListener{
 	JLabel dob = new JLabel("Year of Birth(e.g:1992):");
 	JLabel fullname = new JLabel("Full Name:");
 	JLabel emailadd = new JLabel("Email Address:");
-	
-	
 	
 	JButton login = new JButton("Log In");
     JButton signup = new JButton("Sign Up");
@@ -112,6 +110,7 @@ class frame extends JFrame implements ActionListener,MouseListener{
 
     JFrame frame = new JFrame("Chat Window" );
 
+    //Login Pageのframe//
 	frame(){
 		setTitle("Log In Page");
 		login.addActionListener(this);
@@ -129,29 +128,10 @@ class frame extends JFrame implements ActionListener,MouseListener{
 		
 		setSize(300,200);
 		setVisible(true);
-		
 	}
 	
-	//Tableの関数//
-	void newframe(Map map){
-     
-	 JTable table = new JTable(toTableModel((Map)map)){
-		 public TableCellRenderer getCellRenderer(int row,int column){
-			 return new ButtonRenderer();
-		 }
-	 };
-	 table.setRowHeight(32);
-     table.addMouseListener((MouseListener) this);
-	 
-	 setTitle("User List");
-	 
-     this.add(new JScrollPane(table));
-     this.pack();
-     this.setVisible(true);
-		
-	}
-    
-	void signuppage(){
+	//signupのページを作る関数//
+void signuppage(){
 		
 		setTitle("Sign Up Page");
 		
@@ -177,7 +157,27 @@ class frame extends JFrame implements ActionListener,MouseListener{
 		setVisible(true);
 
 	}
-	
+
+	//Tableを作る関数//
+	void newframe(Map map){
+     
+	 JTable table = new JTable(toTableModel((Map)map)){
+		 public TableCellRenderer getCellRenderer(int row,int column){
+			 return new ButtonRenderer();
+		 }
+	 };
+	 table.setRowHeight(32);
+     table.addMouseListener((MouseListener) this);
+	 
+	 setTitle("User List");
+	 
+     this.add(new JScrollPane(table));
+     this.pack();
+     this.setVisible(true);
+		
+	}
+    
+	//連絡ページを作る関数//
 	private void chatwindow() {
         
 	    frame.setSize(600,400);
@@ -264,14 +264,9 @@ class frame extends JFrame implements ActionListener,MouseListener{
 
  //データベースからデーターを取る関数//
   public void getData(DatabaseReference ref){
-	  
-	
 	usertext = username.getText();
 	char[] passwordtext = password.getPassword();
 		
-	System.out.println("入力したユーザーは"+usertext);
-	System.out.println("入力したパスワードは"+Arrays.toString(passwordtext));
-    
 	final String stringpass = String.valueOf(passwordtext);
 	
 		//データをデータベースから取る//
@@ -279,14 +274,6 @@ class frame extends JFrame implements ActionListener,MouseListener{
      		new ValueEventListener(){
      		  public void onDataChange(DataSnapshot dataSnapshot){
      				Object user = dataSnapshot.getValue();
-     				
-     				System.out.println("Getting the data");
-     				System.out.println(user);
-     				System.out.println("Got data");
-     				
-     				//取得されたデータのクラスを確認する//
-     				System.out.println("The user class is"+user.getClass());
-     			    
      				Iterator it = ((Map) user).entrySet().iterator();
      				
      			    int i = 0;
@@ -395,10 +382,34 @@ public void mouseEntered(MouseEvent e) {
 public void mouseExited(MouseEvent e) {
 	// TODO 自動生成されたメソッド・スタブ
 	
+ }
 }
 
+//tableのbuttonのclass//
+class ButtonRenderer extends JPanel implements TableCellRenderer,ActionListener {
+	
+	JButton chat = new JButton("Available(Click To Contact)");
+	
+  public Component getTableCellRendererComponent(
+                      final JTable table, Object value,
+                      boolean isSelected, boolean hasFocus,
+                      int row, int column) {
+  	JLabel label = new JLabel(value.toString());
+      this.add(label);
+      this.add(chat);
+      chat.addActionListener(this);
+      table.setEnabled(false);
+      return this;
+  }
 
- }
+	public void actionPerformed(ActionEvent e) {
+		
+		if(e.getSource() == chat){
+			System.out.println("Chat Button Clicked!");
+		}
+		
+	}
+}
   
 public class App 
 {
@@ -422,30 +433,6 @@ public class App
         configFirebase();
         new frame();
     }
-}
-
-class ButtonRenderer extends JPanel implements TableCellRenderer,ActionListener {
-	
-	JButton chat = new JButton("Available(Click To Contact)");
-	
-    public Component getTableCellRendererComponent(
-                        final JTable table, Object value,
-                        boolean isSelected, boolean hasFocus,
-                        int row, int column) {
-    	JLabel label = new JLabel(value.toString());
-        this.add(label);
-        this.add(chat);
-        chat.addActionListener(this);
-        table.setEnabled(false);
-        return this;
-    }
-
-	public void actionPerformed(ActionEvent e) {
-		
-		if(e.getSource() == chat){
-			System.out.println("Chat Button Clicked!");
-		}
-		
-	}
+    
 }
 	
